@@ -12,7 +12,7 @@ const DEFAULT_ROW = () => ({
   id: crypto.randomUUID(),
   resource: '', activity: '', phase: PHASES[0],
   location: LOCATIONS[0], type: TYPES[0], capexOpex: CAPEX_OPEX[0],
-  hrsPerWeek: '', hourlyRate: '',
+  count: 1, hrsPerWeek: '', hourlyRate: '',
 });
 
 function SectionHeader({ title, action }) {
@@ -54,7 +54,7 @@ export default function InputsTab({ project, onChange, onTabSwitch }) {
   // --- Totals row ---
   const totalHrs  = resources.reduce((s, r) => {
     const pw = phases.find(p => p.name === r.phase)?.weeks || 0;
-    return s + totalHours(r.hrsPerWeek, pw);
+    return s + totalHours(r.hrsPerWeek, pw, r.count);
   }, 0);
 
   // --- Alloc warnings ---
@@ -67,13 +67,13 @@ export default function InputsTab({ project, onChange, onTabSwitch }) {
   // --- Export CSV for Inputs ---
   const handleExportCSV = () => {
     const rows = [
-      ['Resource','Activity','Phase','Location','Type','CapEx/OpEx','Hrs/Wk','Rate ($/hr)','Total Hrs','Total Cost'],
+      ['Resource','Activity','Phase','Location','Type','CapEx/OpEx','# Resources','Hrs/Wk','Rate ($/hr)','Total Hrs','Total Cost'],
       ...resources.map(r => {
         const pw   = phases.find(p => p.name === r.phase)?.weeks || 0;
-        const hrs  = totalHours(r.hrsPerWeek, pw);
+        const hrs  = totalHours(r.hrsPerWeek, pw, r.count);
         const cost = hrs * (Number(r.hourlyRate) || 0);
         return [r.resource, r.activity, r.phase, r.location, r.type, r.capexOpex,
-                r.hrsPerWeek, r.hourlyRate, hrs.toFixed(0), cost.toFixed(0)];
+                r.count ?? 1, r.hrsPerWeek, r.hourlyRate, hrs.toFixed(0), cost.toFixed(0)];
       }),
       [],
       ['','','','','','','Total Hours','',totalHrs.toFixed(0),''],
@@ -204,6 +204,7 @@ export default function InputsTab({ project, onChange, onTabSwitch }) {
                   ['Location',    'min-w-[100px]'],
                   ['Type',        'min-w-[90px]'],
                   ['CapEx/OpEx',  'min-w-[90px]'],
+                  ['# Resources', 'min-w-[80px]'],
                   ['Hrs/Wk',      'min-w-[70px]'],
                   ['Rate ($/hr)', 'min-w-[80px]'],
                   ['Total Hrs',   'min-w-[80px]'],
@@ -217,7 +218,7 @@ export default function InputsTab({ project, onChange, onTabSwitch }) {
             <tbody>
               {resources.map((r, i) => {
                 const phaseWeeks = phases.find(p => p.name === r.phase)?.weeks || 0;
-                const hrs        = totalHours(r.hrsPerWeek, phaseWeeks);
+                const hrs        = totalHours(r.hrsPerWeek, phaseWeeks, r.count);
                 const cost       = hrs * (Number(r.hourlyRate) || 0);
                 const allocPct   = weeklyAllocPct(r.hrsPerWeek, stdHrs);
                 const over       = allocPct > 100;
@@ -255,6 +256,16 @@ export default function InputsTab({ project, onChange, onTabSwitch }) {
                         </select>
                       </td>
                     ))}
+                    {/* # Resources */}
+                    <td className="border border-gray-200 p-0">
+                      <input
+                        type="number" min="1"
+                        value={r.count ?? 1}
+                        onChange={e => updateResource(i, 'count', e.target.value)}
+                        className="w-full px-2 py-1.5 text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-300"
+                        style={inputStyle()}
+                      />
+                    </td>
                     {/* Hrs/Wk */}
                     <td className="border border-gray-200 p-0">
                       <div className="relative">
@@ -360,21 +371,4 @@ export default function InputsTab({ project, onChange, onTabSwitch }) {
         >
           Export Excel
         </button>
-        <button
-          onClick={handleExportCSV}
-          className="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          Export CSV
-        </button>
-        <button
-          onClick={handleAudit}
-          className="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          Audit Summary
-        </button>
-      </section>
-
-    </div>
-  );
-}
-                                                                                                                            
+   

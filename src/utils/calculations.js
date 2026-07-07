@@ -35,9 +35,9 @@ export function totalWeeks(phases) {
   return phases.reduce((s, p) => s + (Number(p.weeks) || 0), 0);
 }
 
-/** Total hours for a resource-activity row */
-export function totalHours(hrsPerWeek, phaseWeeks) {
-  return (Number(hrsPerWeek) || 0) * (Number(phaseWeeks) || 0);
+/** Total hours for a resource-activity row (count = number of resources, default 1) */
+export function totalHours(hrsPerWeek, phaseWeeks, count = 1) {
+  return (Number(hrsPerWeek) || 0) * (Number(phaseWeeks) || 0) * (Number(count) || 1);
 }
 
 /** Weekly allocation % */
@@ -53,7 +53,8 @@ export function weeklyAllocPct(hrsPerWeek, stdHrsPerWeek) {
 export function monthlyCosts(resource, phases, projectStartDate) {
   if (!projectStartDate) return {};
   const hrsPerWeek = Number(resource.hrsPerWeek) || 0;
-  const rate = Number(resource.hourlyRate) || 0;
+  const rate  = Number(resource.hourlyRate) || 0;
+  const count = Number(resource.count) || 1;
   const result = {};
 
   let weekOffset = 0;
@@ -75,7 +76,7 @@ export function monthlyCosts(resource, phases, projectStartDate) {
       const effectiveStart = phaseStart > monthStart ? phaseStart : monthStart;
       const effectiveEnd   = phaseEnd   < monthEnd   ? phaseEnd   : monthEnd;
       const days = Math.max(0, (effectiveEnd - effectiveStart) / 86400000);
-      result[key] = (result[key] || 0) + (days / 7) * hrsPerWeek * rate;
+      result[key] = (result[key] || 0) + (days / 7) * hrsPerWeek * rate * count;
       cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
     }
     weekOffset += phaseWeeks;
@@ -90,7 +91,4 @@ function addWeeks(date, weeks) {
 }
 
 /** CapEx/OpEx totals via filter */
-export function capexOpexTotals(resources, phases, startDate) {
-  let capex = 0, opex = 0;
-  for (const r of resources) {
-    const costs = monthlyCosts(r, pha
+export function capexOpexTotal

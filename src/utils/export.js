@@ -13,13 +13,15 @@ export function exportToExcel(project) {
     ['Phase', 'Weeks'],
     ...project.phases.map(p => [p.name, p.weeks]),
     [],
-    ['Resource', 'Activity', 'Phase', 'Location', 'Type', 'CapEx/OpEx', 'Hrs/Week', 'Hourly Rate', 'Total Hours', 'Total Cost'],
-    ...project.resources.map(r => [
-      r.resource, r.activity, r.phase, r.location, r.type, r.capexOpex,
-      r.hrsPerWeek, r.hourlyRate,
-      (r.hrsPerWeek || 0) * (project.phases.find(p => p.name === r.phase)?.weeks || 0),
-      (r.hrsPerWeek || 0) * (project.phases.find(p => p.name === r.phase)?.weeks || 0) * (r.hourlyRate || 0),
-    ]),
+    ['Resource', 'Activity', 'Phase', 'Location', 'Type', 'CapEx/OpEx', '# Resources', 'Hrs/Week', 'Hourly Rate', 'Total Hours', 'Total Cost'],
+    ...project.resources.map(r => {
+      const pw    = project.phases.find(p => p.name === r.phase)?.weeks || 0;
+      const count = Number(r.count) || 1;
+      const hrs   = (Number(r.hrsPerWeek) || 0) * pw * count;
+      const cost  = hrs * (Number(r.hourlyRate) || 0);
+      return [r.resource, r.activity, r.phase, r.location, r.type, r.capexOpex,
+              count, r.hrsPerWeek, r.hourlyRate, hrs, cost];
+    }),
   ];
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(inputRows), 'Inputs');
 
@@ -30,8 +32,4 @@ export function exportTabToCSV(rows, filename) {
   const ws = XLSX.utils.aoa_to_sheet(rows);
   const csv = XLSX.utils.sheet_to_csv(ws);
   const blob = new Blob([csv], { type: 'text/csv' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  a.click();
-}
+  const a = document.createEle

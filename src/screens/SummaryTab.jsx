@@ -20,7 +20,7 @@ export default function SummaryTab({ project }) {
   const totals = capexOpexTotals(resources, phases, settings.startDate);
   const totalHrs = resources.reduce((s, r) => {
     const ph = phases.find(p => p.name === r.phase);
-    return s + (Number(r.hrsPerWeek) || 0) * (Number(ph?.weeks) || 0);
+    return s + (Number(r.hrsPerWeek) || 0) * (Number(ph?.weeks) || 0) * (Number(r.count) || 1);
   }, 0);
 
   // By Activity
@@ -28,7 +28,7 @@ export default function SummaryTab({ project }) {
   resources.forEach(r => {
     if (!byActivity[r.activity]) byActivity[r.activity] = { cost: 0, hrs: 0 };
     const ph = phases.find(p => p.name === r.phase);
-    const hrs = (Number(r.hrsPerWeek) || 0) * (Number(ph?.weeks) || 0);
+    const hrs = (Number(r.hrsPerWeek) || 0) * (Number(ph?.weeks) || 0) * (Number(r.count) || 1);
     const cost = hrs * (Number(r.hourlyRate) || 0);
     byActivity[r.activity].cost += cost;
     byActivity[r.activity].hrs += hrs;
@@ -39,7 +39,7 @@ export default function SummaryTab({ project }) {
   resources.forEach(r => {
     if (!byLocation[r.location]) byLocation[r.location] = { cost: 0, hrs: 0 };
     const ph = phases.find(p => p.name === r.phase);
-    const hrs = (Number(r.hrsPerWeek) || 0) * (Number(ph?.weeks) || 0);
+    const hrs = (Number(r.hrsPerWeek) || 0) * (Number(ph?.weeks) || 0) * (Number(r.count) || 1);
     const cost = hrs * (Number(r.hourlyRate) || 0);
     byLocation[r.location].cost += cost;
     byLocation[r.location].hrs += hrs;
@@ -124,8 +124,4 @@ export default function SummaryTab({ project }) {
         <h2 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
           Resume Bullet <CopyButton text={resumeText} />
         </h2>
-        <p className="text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded p-3">{resumeText}</p>
-      </section>
-    </div>
-  );
-}
+        <p className="text-sm text-gray-600 bg-gray-50 border border
