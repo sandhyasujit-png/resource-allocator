@@ -81,11 +81,8 @@ export default function App() {
 
       {/* Tab Content */}
       <div className="flex-1 overflow-auto">
-        {activeTab === 0 && <InputsTab project={project} onChange={handleChange} />}
+        {activeTab === 0 && <InputsTab project={project} onChange={handleChange} onTabSwitch={setActiveTab} />}
         {activeTab === 1 && <WeeklyAllocationTab project={project} />}
         {activeTab === 2 && <MonthlyCostTab project={project} />}
         {activeTab === 3 && <SummaryTab project={project} />}
-      </div>
-    </div>
-  );
-}
+    
