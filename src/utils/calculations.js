@@ -10,12 +10,25 @@
  */
 
 export const COLORS = {
-  input:  '#FFF2CC',
-  calc:   '#DEEAF1',
-  capex:  '#E2EFDA',
-  opex:   '#FCE4D6',
-  over:   '#ef4444',
+  input:     '#FFF2CC',
+  inputText: '#111827',
+  calc:      '#D0E8F2',
+  calcText:  '#0c4a6e',
+  capex:     '#D6EDD0',
+  capexText: '#111827',
+  opex:      '#FAD9C8',
+  opexText:  '#111827',
+  over:      '#dc2626',
 };
+
+/** Returns inline style object for an input cell */
+export const inputStyle  = () => ({ background: COLORS.input,  color: COLORS.inputText });
+/** Returns inline style object for a calculated cell */
+export const calcStyle   = () => ({ background: COLORS.calc,   color: COLORS.calcText  });
+/** Returns inline style object for a row based on CapEx/OpEx */
+export const rowStyle    = (capexOpex) => capexOpex === 'CapEx'
+  ? { background: COLORS.capex, color: COLORS.capexText }
+  : { background: COLORS.opex,  color: COLORS.opexText  };
 
 /** Total project duration in weeks */
 export function totalWeeks(phases) {
@@ -80,23 +93,4 @@ function addWeeks(date, weeks) {
 export function capexOpexTotals(resources, phases, startDate) {
   let capex = 0, opex = 0;
   for (const r of resources) {
-    const costs = monthlyCosts(r, phases, startDate);
-    const total = Object.values(costs).reduce((s, v) => s + v, 0);
-    if (r.capexOpex === 'CapEx') capex += total;
-    else opex += total;
-  }
-  return { capex, opex, total: capex + opex };
-}
-
-/** Sorted unique month keys across all resources */
-export function allMonthKeys(resources, phases, startDate) {
-  const keys = new Set();
-  for (const r of resources) {
-    Object.keys(monthlyCosts(r, phases, startDate)).forEach(k => keys.add(k));
-  }
-  return [...keys].sort();
-}
-
-export function fmt(n, currency = 'USD') {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency, maximumFractionDigits: 0 }).format(n);
-}
+    const costs = monthlyCosts(r, pha

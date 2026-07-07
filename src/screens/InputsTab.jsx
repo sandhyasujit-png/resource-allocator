@@ -1,4 +1,4 @@
-import { COLORS, totalHours, weeklyAllocPct, totalWeeks, capexOpexTotals, fmt } from '../utils/calculations';
+import { COLORS, inputStyle, calcStyle, rowStyle, totalHours, weeklyAllocPct, totalWeeks, capexOpexTotals, fmt } from '../utils/calculations';
 import { exportToExcel, exportTabToCSV } from '../utils/export';
 
 const PHASES    = ['Initiation','Planning','Analysis','Design','Build','Testing','Deployment'];
@@ -108,7 +108,7 @@ export default function InputsTab({ project, onChange, onTabSwitch }) {
                 value={settings[f.key] ?? ''}
                 onChange={e => updateSettings(f.key, e.target.value)}
                 className="border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                style={{ background: COLORS.input }}
+                style={inputStyle()}
               />
             </label>
           ))}
@@ -126,7 +126,7 @@ export default function InputsTab({ project, onChange, onTabSwitch }) {
               <span className="text-xs text-gray-500 font-medium">{f.label}</span>
               <div
                 className="border border-gray-300 rounded px-2 py-1.5 text-sm font-medium text-gray-700"
-                style={{ background: COLORS.calc }}
+                style={calcStyle()}
               >
                 {f.value}
               </div>
@@ -149,7 +149,7 @@ export default function InputsTab({ project, onChange, onTabSwitch }) {
                   value={ph.weeks}
                   onChange={e => updatePhase(i, Number(e.target.value))}
                   className="w-14 border border-gray-300 rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  style={{ background: COLORS.input }}
+                  style={inputStyle()}
                 />
                 <span className="text-xs text-gray-400 w-6 shrink-0">wk</span>
                 <div className="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
@@ -221,10 +221,10 @@ export default function InputsTab({ project, onChange, onTabSwitch }) {
                 const cost       = hrs * (Number(r.hourlyRate) || 0);
                 const allocPct   = weeklyAllocPct(r.hrsPerWeek, stdHrs);
                 const over       = allocPct > 100;
-                const rowBg      = r.capexOpex === 'CapEx' ? COLORS.capex : COLORS.opex;
+                const rStyle = rowStyle(r.capexOpex);
 
                 return (
-                  <tr key={r.id} style={{ background: rowBg }}>
+                  <tr key={r.id} style={rStyle}>
                     {/* Free-text inputs */}
                     {['resource', 'activity'].map(k => (
                       <td key={k} className="border border-gray-200 p-0">
@@ -232,8 +232,8 @@ export default function InputsTab({ project, onChange, onTabSwitch }) {
                           value={r[k]}
                           onChange={e => updateResource(i, k, e.target.value)}
                           placeholder={k === 'resource' ? 'e.g. BA Lead' : 'e.g. Requirements'}
-                          className="w-full px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300 placeholder-gray-300"
-                          style={{ background: COLORS.input, minWidth: '110px' }}
+                          className="w-full px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300 placeholder-gray-400"
+                          style={{ ...inputStyle(), minWidth: '110px' }}
                         />
                       </td>
                     ))}
@@ -249,7 +249,7 @@ export default function InputsTab({ project, onChange, onTabSwitch }) {
                           value={r[k]}
                           onChange={e => updateResource(i, k, e.target.value)}
                           className="w-full px-2 py-1.5 text-xs focus:outline-none"
-                          style={{ background: COLORS.input }}
+                          style={inputStyle()}
                         >
                           {opts.map(o => <option key={o}>{o}</option>)}
                         </select>
@@ -263,11 +263,12 @@ export default function InputsTab({ project, onChange, onTabSwitch }) {
                           value={r.hrsPerWeek}
                           onChange={e => updateResource(i, 'hrsPerWeek', e.target.value)}
                           className="w-full px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300"
-                          style={{ background: COLORS.input, color: over ? '#ef4444' : undefined, fontWeight: over ? 600 : undefined }}
+                          style={{ ...inputStyle(), color: over ? COLORS.over : COLORS.inputText, fontWeight: over ? 700 : undefined }}
                         />
                         {over && (
                           <span
-                            className="absolute right-1 top-1/2 -translate-y-1/2 text-red-500 text-[10px] font-bold"
+                            className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] font-bold"
+                            style={{ color: COLORS.over }}
                             title={`${allocPct.toFixed(0)}% allocation`}
                           >!</span>
                         )}
@@ -280,15 +281,15 @@ export default function InputsTab({ project, onChange, onTabSwitch }) {
                         value={r.hourlyRate}
                         onChange={e => updateResource(i, 'hourlyRate', e.target.value)}
                         className="w-full px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300"
-                        style={{ background: COLORS.input }}
+                        style={inputStyle()}
                       />
                     </td>
                     {/* Calculated: Total Hrs */}
-                    <td className="border border-gray-200 px-2 py-1.5 text-right font-medium" style={{ background: COLORS.calc }}>
+                    <td className="border border-gray-200 px-2 py-1.5 text-right font-medium" style={calcStyle()}>
                       {hrs > 0 ? Math.round(hrs).toLocaleString() : '—'}
                     </td>
                     {/* Calculated: Total Cost */}
-                    <td className="border border-gray-200 px-2 py-1.5 text-right font-medium" style={{ background: COLORS.calc }}>
+                    <td className="border border-gray-200 px-2 py-1.5 text-right font-medium" style={calcStyle()}>
                       {cost > 0 ? fmt(cost, settings.currency || 'USD') : '—'}
                     </td>
                     {/* Delete */}
@@ -309,10 +310,10 @@ export default function InputsTab({ project, onChange, onTabSwitch }) {
                   <td className="border border-gray-200 px-2 py-2" colSpan={8}>
                     Totals
                   </td>
-                  <td className="border border-gray-200 px-2 py-2 text-right" style={{ background: COLORS.calc }}>
+                  <td className="border border-gray-200 px-2 py-2 text-right" style={calcStyle()}>
                     {Math.round(totalHrs).toLocaleString()}
                   </td>
-                  <td className="border border-gray-200 px-2 py-2 text-right" style={{ background: COLORS.calc }}>
+                  <td className="border border-gray-200 px-2 py-2 text-right" style={calcStyle()}>
                     {fmt(totals.total, settings.currency || 'USD')}
                   </td>
                   <td className="border border-gray-200" />
@@ -376,3 +377,4 @@ export default function InputsTab({ project, onChange, onTabSwitch }) {
     </div>
   );
 }
+                                                                                                                            
